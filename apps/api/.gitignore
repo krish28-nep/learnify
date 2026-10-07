@@ -1,0 +1,18 @@
+# API dependencies and generated output
+/node_modules/
+/dist/
+/coverage/
+/generated/
+*.tsbuildinfo
+
+# API environment files; keep example templates trackable
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Prisma CLI-generated agent skills
+.agents/skills/prisma-*/
+.claude/skills/prisma-*/
+.cursor/skills/prisma-*/
+.devin/skills/prisma-*/

@@ -1,0 +1,14 @@
+{
+  "name": "learnify",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "pnpm --parallel --filter ./apps/* dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api start:dev",
+    "build": "pnpm -r build",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test"
+  }
+}
