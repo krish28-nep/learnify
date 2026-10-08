@@ -17,7 +17,6 @@ async function bootstrap() {
     .setTitle('Learnify API')
     .setDescription('Learnify backend API')
     .setVersion('1.0')
-    .addCookieAuth('__Host-sid')
     .build();
 
   const documentFactory = () =>

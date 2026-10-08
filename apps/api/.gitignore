@@ -4,6 +4,7 @@
 /coverage/
 /generated/
 /src/generated/
+/uploads/
 *.tsbuildinfo
 
 # API environment files; keep example templates trackable

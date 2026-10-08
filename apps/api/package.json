@@ -23,7 +23,9 @@
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:seed": "prisma db seed",
+    "seed:admin": "pnpm build && node prisma/seed.mjs"
   },
   "dependencies": {
     "@nestjs/authentication": "^0.0.1",
