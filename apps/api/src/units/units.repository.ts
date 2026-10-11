@@ -25,6 +25,13 @@ export class UnitsRepository {
     return this.prisma.unit.findUnique({ where: { id } });
   }
 
+  findBySubjectAndTitle(
+    subjectId: string,
+    title: string,
+  ): Promise<PrismaUnit | null> {
+    return this.prisma.unit.findFirst({ where: { subjectId, title } });
+  }
+
   create(subjectId: string, data: CreateUnitDto): Promise<PrismaUnit> {
     return this.prisma.unit.create({
       data: { ...data, subjectId },

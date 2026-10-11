@@ -26,46 +26,37 @@ export class UnitsService {
 
   async create(subjectId: string, data: CreateUnitDto): Promise<PrismaUnit> {
     await this.requireSubject(subjectId);
-    try {
-      return await this.unitsRepository.create(subjectId, data);
-    } catch (error) {
-      if (hasPrismaCode(error, 'P2002')) {
-        throw new ConflictException(
-          'A unit with this title already exists in this subject',
-        );
-      }
-      if (hasPrismaCode(error, 'P2003')) {
-        throw new NotFoundException('Subject not found');
-      }
-      throw error;
+    if (
+      await this.unitsRepository.findBySubjectAndTitle(subjectId, data.title)
+    ) {
+      throw new ConflictException(
+        'A unit with this title already exists in this subject',
+      );
     }
+    return this.unitsRepository.create(subjectId, data);
   }
 
   async update(id: string, data: UpdateUnitDto): Promise<PrismaUnit> {
-    try {
-      return await this.unitsRepository.update(id, data);
-    } catch (error) {
-      if (hasPrismaCode(error, 'P2002')) {
+    const existing = await this.unitsRepository.findById(id);
+    if (!existing) throw new NotFoundException('Unit not found');
+    if (data.title) {
+      const duplicate = await this.unitsRepository.findBySubjectAndTitle(
+        existing.subjectId,
+        data.title,
+      );
+      if (duplicate && duplicate.id !== id) {
         throw new ConflictException(
           'A unit with this title already exists in this subject',
         );
       }
-      if (hasPrismaCode(error, 'P2025')) {
-        throw new NotFoundException('Unit not found');
-      }
-      throw error;
     }
+    return this.unitsRepository.update(id, data);
   }
 
   async delete(id: string): Promise<void> {
-    try {
-      await this.unitsRepository.delete(id);
-    } catch (error) {
-      if (hasPrismaCode(error, 'P2025')) {
-        throw new NotFoundException('Unit not found');
-      }
-      throw error;
-    }
+    if (!(await this.unitsRepository.findById(id)))
+      throw new NotFoundException('Unit not found');
+    await this.unitsRepository.delete(id);
   }
 
   private async requireSubject(subjectId: string): Promise<void> {
@@ -73,13 +64,4 @@ export class UnitsService {
       throw new NotFoundException('Subject not found');
     }
   }
-}
-
-function hasPrismaCode(error: unknown, code: string): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    error.code === code
-  );
 }

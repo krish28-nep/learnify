@@ -17,6 +17,10 @@ export class SubjectsRepository {
     return this.prisma.subject.findUnique({ where: { id } });
   }
 
+  findBySlug(slug: string): Promise<PrismaSubject | null> {
+    return this.prisma.subject.findUnique({ where: { slug } });
+  }
+
   create(data: CreateSubjectDto): Promise<PrismaSubject> {
     return this.prisma.subject.create({ data });
   }
