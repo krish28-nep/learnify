@@ -23,5 +23,3 @@ export type CreateSubjectDto = z.infer<typeof createSubjectSchema>;
 
 export const updateSubjectSchema = z.object(subjectFields).partial();
 export type UpdateSubjectDto = z.infer<typeof updateSubjectSchema>;
-
-export const subjectIdSchema = z.string().cuid();

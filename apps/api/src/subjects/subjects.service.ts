@@ -4,6 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Subject as PrismaSubject } from '../generated/prisma/client.js';
+import type {
+  PaginationMetadata,
+  PaginationQuery,
+} from '../common/pagination.js';
 import { SubjectsRepository } from './subjects.repository.js';
 import type { CreateSubjectDto, UpdateSubjectDto } from './subject.schemas.js';
 
@@ -11,8 +15,33 @@ import type { CreateSubjectDto, UpdateSubjectDto } from './subject.schemas.js';
 export class SubjectsService {
   constructor(private readonly subjectsRepository: SubjectsRepository) {}
 
-  findAll(): Promise<PrismaSubject[]> {
-    return this.subjectsRepository.findAll();
+  async findAll(pagination: PaginationQuery): Promise<{
+    items: PrismaSubject[];
+    metadata?: PaginationMetadata;
+  }> {
+    if (pagination.page === undefined && pagination.pageSize === undefined) {
+      return { items: await this.subjectsRepository.findAll() };
+    }
+
+    const page = pagination.page ?? 1;
+    const pageSize = pagination.pageSize ?? 10;
+    const [items, totalItems] = await Promise.all([
+      this.subjectsRepository.findAll({
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.subjectsRepository.count(),
+    ]);
+
+    return {
+      items,
+      metadata: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages: Math.ceil(totalItems / pageSize),
+      },
+    };
   }
 
   async findById(id: string): Promise<PrismaSubject> {

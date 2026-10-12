@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { PaginationOptions } from '../common/pagination.js';
 import type { Subject as PrismaSubject } from '../generated/prisma/client.js';
 import type { CreateSubjectDto, UpdateSubjectDto } from './subject.schemas.js';
 
@@ -7,10 +8,15 @@ import type { CreateSubjectDto, UpdateSubjectDto } from './subject.schemas.js';
 export class SubjectsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  findAll(): Promise<PrismaSubject[]> {
+  findAll(options?: PaginationOptions): Promise<PrismaSubject[]> {
     return this.prisma.subject.findMany({
+      ...options,
       orderBy: [{ sortingOrder: 'asc' }, { title: 'asc' }],
     });
+  }
+
+  count(): Promise<number> {
+    return this.prisma.subject.count();
   }
 
   findById(id: string): Promise<PrismaSubject | null> {

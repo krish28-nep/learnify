@@ -1,10 +1,17 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import type { Content as PrismaContent } from '../generated/prisma/client.js';
-import { FileStorageService } from '../uploads/file-storage.service.js';
+import type {
+  PaginationMetadata,
+  PaginationQuery,
+} from '../common/pagination.js';
+import { CloudinaryService } from '../cloudinary/cloudinary.service.js';
 import { ContentsRepository } from './contents.repository.js';
 import type { CreateContentDto, UpdateContentDto } from './content.schemas.js';
 
-export type ContentResponse = Omit<PrismaContent, 'fileUrl'> & {
+export type ContentResponse = Omit<
+  PrismaContent,
+  'fileUrl' | 'filePublicId'
+> & {
   fileUrl: string;
 };
 
@@ -12,13 +19,37 @@ export type ContentResponse = Omit<PrismaContent, 'fileUrl'> & {
 export class ContentsService {
   constructor(
     private readonly contentsRepository: ContentsRepository,
-    private readonly fileStorage: FileStorageService,
+    private readonly cloudinary: CloudinaryService,
   ) {}
 
-  async findByUnitId(unitId: string): Promise<ContentResponse[]> {
+  async findByUnitId(
+    unitId: string,
+    pagination: PaginationQuery,
+  ): Promise<{ items: ContentResponse[]; metadata?: PaginationMetadata }> {
     await this.requireUnit(unitId);
-    const contents = await this.contentsRepository.findByUnitId(unitId);
-    return contents.map(toContentResponse);
+    if (pagination.page === undefined && pagination.pageSize === undefined) {
+      const contents = await this.contentsRepository.findByUnitId(unitId);
+      return { items: contents.map(toContentResponse) };
+    }
+
+    const page = pagination.page ?? 1;
+    const pageSize = pagination.pageSize ?? 10;
+    const [contents, totalItems] = await Promise.all([
+      this.contentsRepository.findByUnitId(unitId, {
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.contentsRepository.countByUnitId(unitId),
+    ]);
+    return {
+      items: contents.map(toContentResponse),
+      metadata: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages: Math.ceil(totalItems / pageSize),
+      },
+    };
   }
 
   async findById(id: string): Promise<ContentResponse> {
@@ -32,40 +63,41 @@ export class ContentsService {
     file: UploadedPdf,
   ): Promise<ContentResponse> {
     await this.requireUnit(unitId);
-    const fileKey = await this.fileStorage.save(file.buffer);
+    const uploadedFile = await this.cloudinary.uploadFile(file);
     try {
       const content = await this.contentsRepository.create(
         unitId,
         data,
-        fileKey,
+        uploadedFile.url,
+        uploadedFile.publicId,
         safeFileName(file.originalname),
       );
       return toContentResponse(content);
     } catch (error) {
-      await this.fileStorage.remove(fileKey);
+      await this.cloudinary.deleteFile(uploadedFile.publicId);
       throw error;
     }
   }
 
   async update(id: string, data: UpdateContentDto): Promise<ContentResponse> {
-    try {
-      const content = await this.contentsRepository.update(id, data);
-      return toContentResponse(content);
-    } catch (error) {
-      throw error;
-    }
+    const content = await this.contentsRepository.update(id, data);
+    return toContentResponse(content);
   }
 
   async delete(id: string): Promise<void> {
     const content = await this.requireContent(id);
     await this.contentsRepository.delete(id);
-    await this.fileStorage.remove(content.fileUrl);
+    if (content.filePublicId) {
+      await this.cloudinary.deleteFile(content.filePublicId);
+    }
   }
 
-  async getPdf(id: string): Promise<{ path: string; fileName: string | null }> {
+  async getPdf(id: string): Promise<{ url: string }> {
     const content = await this.requireContent(id);
-    const path = await this.fileStorage.getPath(content.fileUrl);
-    return { path, fileName: content.fileName };
+    if (!content.filePublicId) {
+      throw new NotFoundException('PDF not found');
+    }
+    return { url: content.fileUrl };
   }
 
   private async requireContent(id: string): Promise<PrismaContent> {
@@ -89,7 +121,16 @@ interface UploadedPdf {
 }
 
 function toContentResponse(content: PrismaContent): ContentResponse {
-  return { ...content, fileUrl: `/contents/${content.id}/file` };
+  return {
+    id: content.id,
+    unitId: content.unitId,
+    title: content.title,
+    description: content.description,
+    fileName: content.fileName,
+    createdAt: content.createdAt,
+    updatedAt: content.updatedAt,
+    fileUrl: `/contents/${content.id}/file`,
+  };
 }
 
 function safeFileName(fileName: string): string {

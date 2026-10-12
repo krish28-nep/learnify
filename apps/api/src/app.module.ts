@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthenticationModule } from '@nestjs/authentication';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -10,6 +11,7 @@ import { ContentsModule } from './contents/contents.module.js';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     AuthenticationModule.forRoot({
       session: {
         absoluteTtl: '14d',

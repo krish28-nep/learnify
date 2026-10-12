@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { PaginationOptions } from '../common/pagination.js';
 import type { Unit as PrismaUnit } from '../generated/prisma/client.js';
 import type { CreateUnitDto, UpdateUnitDto } from './unit.schemas.js';
 
@@ -14,11 +15,19 @@ export class UnitsRepository {
     });
   }
 
-  findBySubjectId(subjectId: string): Promise<PrismaUnit[]> {
+  findBySubjectId(
+    subjectId: string,
+    options?: PaginationOptions,
+  ): Promise<PrismaUnit[]> {
     return this.prisma.unit.findMany({
       where: { subjectId },
+      ...options,
       orderBy: [{ sortingOrder: 'asc' }, { title: 'asc' }],
     });
+  }
+
+  countBySubjectId(subjectId: string): Promise<number> {
+    return this.prisma.unit.count({ where: { subjectId } });
   }
 
   findById(id: string): Promise<PrismaUnit | null> {

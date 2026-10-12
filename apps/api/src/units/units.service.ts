@@ -4,6 +4,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import type { Unit as PrismaUnit } from '../generated/prisma/client.js';
+import type {
+  PaginationMetadata,
+  PaginationQuery,
+} from '../common/pagination.js';
 import { UnitsRepository } from './units.repository.js';
 import type { CreateUnitDto, UpdateUnitDto } from './unit.schemas.js';
 
@@ -11,9 +15,36 @@ import type { CreateUnitDto, UpdateUnitDto } from './unit.schemas.js';
 export class UnitsService {
   constructor(private readonly unitsRepository: UnitsRepository) {}
 
-  async findBySubjectId(subjectId: string): Promise<PrismaUnit[]> {
+  async findBySubjectId(
+    subjectId: string,
+    pagination: PaginationQuery,
+  ): Promise<{ items: PrismaUnit[]; metadata?: PaginationMetadata }> {
     await this.requireSubject(subjectId);
-    return this.unitsRepository.findBySubjectId(subjectId);
+    if (pagination.page === undefined && pagination.pageSize === undefined) {
+      return {
+        items: await this.unitsRepository.findBySubjectId(subjectId),
+      };
+    }
+
+    const page = pagination.page ?? 1;
+    const pageSize = pagination.pageSize ?? 10;
+    const [items, totalItems] = await Promise.all([
+      this.unitsRepository.findBySubjectId(subjectId, {
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+      this.unitsRepository.countBySubjectId(subjectId),
+    ]);
+
+    return {
+      items,
+      metadata: {
+        page,
+        pageSize,
+        totalItems,
+        totalPages: Math.ceil(totalItems / pageSize),
+      },
+    };
   }
 
   async findById(id: string): Promise<PrismaUnit> {

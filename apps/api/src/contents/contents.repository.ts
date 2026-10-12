@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
+import type { PaginationOptions } from '../common/pagination.js';
 import type { Content as PrismaContent } from '../generated/prisma/client.js';
 import type { CreateContentDto, UpdateContentDto } from './content.schemas.js';
 
@@ -14,11 +15,19 @@ export class ContentsRepository {
     });
   }
 
-  findByUnitId(unitId: string): Promise<PrismaContent[]> {
+  findByUnitId(
+    unitId: string,
+    options?: PaginationOptions,
+  ): Promise<PrismaContent[]> {
     return this.prisma.content.findMany({
       where: { unitId },
+      ...options,
       orderBy: [{ createdAt: 'asc' }, { title: 'asc' }],
     });
+  }
+
+  countByUnitId(unitId: string): Promise<number> {
+    return this.prisma.content.count({ where: { unitId } });
   }
 
   findById(id: string): Promise<PrismaContent | null> {
@@ -29,10 +38,11 @@ export class ContentsRepository {
     unitId: string,
     data: CreateContentDto,
     fileUrl: string,
+    filePublicId: string,
     fileName: string,
   ): Promise<PrismaContent> {
     return this.prisma.content.create({
-      data: { ...data, unitId, fileUrl, fileName },
+      data: { ...data, unitId, fileUrl, filePublicId, fileName },
     });
   }
 

@@ -3,19 +3,21 @@ import {
   Controller,
   Delete,
   Get,
-  HttpCode,
-  HttpStatus,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AdminOrInstructorGuard } from '../auth/guards/admin-or-instructor.guard.js';
+import { AdminGuard } from '../auth/guards/admin.guard.js';
+import {
+  paginationQuerySchema,
+  type PaginationQuery,
+} from '../common/pagination.js';
 import {
   createUnitSchema,
-  unitIdSchema,
-  unitSubjectIdSchema,
   updateUnitSchema,
   type CreateUnitDto,
   type UpdateUnitDto,
@@ -28,41 +30,57 @@ export class UnitsController {
   constructor(private readonly unitsService: UnitsService) {}
 
   @Get('subjects/:subjectId/units')
-  findBySubjectId(
-    @Param('subjectId', { schema: unitSubjectIdSchema }) subjectId: string,
+  async findBySubjectId(
+    @Param('subjectId', ParseUUIDPipe) subjectId: string,
+    @Query({ schema: paginationQuerySchema }) pagination: PaginationQuery,
   ) {
-    return this.unitsService.findBySubjectId(subjectId);
+    const { items, metadata } = await this.unitsService.findBySubjectId(
+      subjectId,
+      pagination,
+    );
+    return {
+      message: 'Units retrieved successfully',
+      units: items,
+      ...(metadata ? { metadata } : {}),
+    };
   }
 
   @Post('subjects/:subjectId/units')
-  @UseGuards(AdminOrInstructorGuard)
-  create(
-    @Param('subjectId', { schema: unitSubjectIdSchema }) subjectId: string,
+  @UseGuards(AdminGuard)
+  async create(
+    @Param('subjectId', ParseUUIDPipe) subjectId: string,
     @Body({ schema: createUnitSchema }) body: CreateUnitDto,
   ) {
-    return this.unitsService.create(subjectId, body);
+    return {
+      message: 'Unit created successfully',
+      unit: await this.unitsService.create(subjectId, body),
+    };
   }
 
   @Get('units/:id')
-  findById(@Param('id', { schema: unitIdSchema }) id: string) {
-    return this.unitsService.findById(id);
+  async findById(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      message: 'Unit retrieved successfully',
+      unit: await this.unitsService.findById(id),
+    };
   }
 
   @Patch('units/:id')
-  @UseGuards(AdminOrInstructorGuard)
-  update(
-    @Param('id', { schema: unitIdSchema }) id: string,
+  @UseGuards(AdminGuard)
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
     @Body({ schema: updateUnitSchema }) body: UpdateUnitDto,
   ) {
-    return this.unitsService.update(id, body);
+    return {
+      message: 'Unit updated successfully',
+      unit: await this.unitsService.update(id, body),
+    };
   }
 
   @Delete('units/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(AdminOrInstructorGuard)
-  async delete(
-    @Param('id', { schema: unitIdSchema }) id: string,
-  ): Promise<void> {
+  @UseGuards(AdminGuard)
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     await this.unitsService.delete(id);
+    return { message: 'Unit deleted successfully' };
   }
 }

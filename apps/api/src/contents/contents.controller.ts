@@ -4,25 +4,27 @@ import {
   Delete,
   FileTypeValidator,
   Get,
-  HttpCode,
   HttpStatus,
   MaxFileSizeValidator,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   ParseFilePipe,
-  StreamableFile,
+  Query,
+  Redirect,
   UploadedFile,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { createReadStream } from 'node:fs';
-import { AdminOrInstructorGuard } from '../auth/guards/admin-or-instructor.guard.js';
+import { AdminGuard } from '../auth/guards/admin.guard.js';
 import {
-  contentIdSchema,
-  contentUnitIdSchema,
+  paginationQuerySchema,
+  type PaginationQuery,
+} from '../common/pagination.js';
+import {
   createContentSchema,
   updateContentSchema,
   type CreateContentDto,
@@ -43,14 +45,23 @@ export class ContentsController {
   constructor(private readonly contentsService: ContentsService) {}
 
   @Get('units/:unitId/contents')
-  findByUnitId(
-    @Param('unitId', { schema: contentUnitIdSchema }) unitId: string,
+  async findByUnitId(
+    @Param('unitId', ParseUUIDPipe) unitId: string,
+    @Query({ schema: paginationQuerySchema }) pagination: PaginationQuery,
   ) {
-    return this.contentsService.findByUnitId(unitId);
+    const { items, metadata } = await this.contentsService.findByUnitId(
+      unitId,
+      pagination,
+    );
+    return {
+      message: 'Contents retrieved successfully',
+      contents: items,
+      ...(metadata ? { metadata } : {}),
+    };
   }
 
   @Post('units/:unitId/contents')
-  @UseGuards(AdminOrInstructorGuard)
+  @UseGuards(AdminGuard)
   @UseInterceptors(
     FileInterceptor('file', { limits: { fileSize: MAX_PDF_SIZE } }),
   )
@@ -66,8 +77,8 @@ export class ContentsController {
       },
     },
   })
-  create(
-    @Param('unitId', { schema: contentUnitIdSchema }) unitId: string,
+  async create(
+    @Param('unitId', ParseUUIDPipe) unitId: string,
     @Body({ schema: createContentSchema }) body: CreateContentDto,
     @UploadedFile(
       new ParseFilePipe({
@@ -82,43 +93,43 @@ export class ContentsController {
     )
     file: UploadedPdf,
   ) {
-    return this.contentsService.create(unitId, body, file);
+    return {
+      message: 'Content created successfully',
+      content: await this.contentsService.create(unitId, body, file),
+    };
   }
 
   @Get('contents/:id')
-  findById(@Param('id', { schema: contentIdSchema }) id: string) {
-    return this.contentsService.findById(id);
+  async findById(@Param('id', ParseUUIDPipe) id: string) {
+    return {
+      message: 'Content retrieved successfully',
+      content: await this.contentsService.findById(id),
+    };
   }
 
   @Get('contents/:id/file')
-  async getPdf(
-    @Param('id', { schema: contentIdSchema }) id: string,
-  ): Promise<StreamableFile> {
-    const { path, fileName } = await this.contentsService.getPdf(id);
-    const disposition = fileName
-      ? `inline; filename="${fileName.replace(/[\r\n"]/g, '_')}"`
-      : 'inline';
-    return new StreamableFile(createReadStream(path), {
-      type: 'application/pdf',
-      disposition,
-    });
+  @Redirect()
+  async getPdf(@Param('id', ParseUUIDPipe) id: string) {
+    const { url } = await this.contentsService.getPdf(id);
+    return { url, statusCode: HttpStatus.FOUND };
   }
 
   @Patch('contents/:id')
-  @UseGuards(AdminOrInstructorGuard)
-  update(
-    @Param('id', { schema: contentIdSchema }) id: string,
+  @UseGuards(AdminGuard)
+  async update(
+    @Param('id', ParseUUIDPipe) id: string,
     @Body({ schema: updateContentSchema }) body: UpdateContentDto,
   ) {
-    return this.contentsService.update(id, body);
+    return {
+      message: 'Content updated successfully',
+      content: await this.contentsService.update(id, body),
+    };
   }
 
   @Delete('contents/:id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @UseGuards(AdminOrInstructorGuard)
-  async delete(
-    @Param('id', { schema: contentIdSchema }) id: string,
-  ): Promise<void> {
+  @UseGuards(AdminGuard)
+  async delete(@Param('id', ParseUUIDPipe) id: string) {
     await this.contentsService.delete(id);
+    return { message: 'Content deleted successfully' };
   }
 }

@@ -12,7 +12,7 @@ interface AuthenticatedRequest {
 }
 
 @Injectable()
-export class AdminOrInstructorGuard implements CanActivate {
+export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const user = request.user;
@@ -21,10 +21,8 @@ export class AdminOrInstructorGuard implements CanActivate {
       throw new UnauthorizedException();
     }
 
-    if (user.role !== 'ADMIN' && user.role !== 'INSTRUCTOR') {
-      throw new ForbiddenException(
-        'Only admins and instructors can perform this action',
-      );
+    if (user.role !== 'ADMIN') {
+      throw new ForbiddenException('Only admins can perform this action');
     }
 
     return true;

@@ -25,6 +25,9 @@ importers:
       '@nestjs/common':
         specifier: ^12.0.1
         version: 12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@nestjs/config':
+        specifier: ^12.0.1
+        version: 12.0.1(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)
       '@nestjs/core':
         specifier: ^12.0.1
         version: 12.1.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@12.1.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -40,6 +43,9 @@ importers:
       '@prisma/client':
         specifier: 7.10.0
         version: 7.10.0(prisma@7.10.0(@types/react-dom@19.3.0(@types/react@19.3.0))(@types/react@19.3.0)(magicast@0.5.5)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(typescript@6.0.3))(typescript@6.0.3)
+      cloudinary:
+        specifier: ^2.11.0
+        version: 2.11.0
       dotenv:
         specifier: ^18.0.6
         version: 18.0.6
@@ -71,6 +77,9 @@ importers:
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.6
+      '@types/multer':
+        specifier: ^2.3.0
+        version: 2.3.0
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.1
@@ -1255,6 +1264,15 @@ packages:
       class-validator:
         optional: true
 
+  '@nestjs/config@12.0.1':
+    resolution:
+      {
+        integrity: sha512-pxqEtULFi4qXda0TqyR2YFq7o4UoRa7h4K5H0lgFuBMrUGr6x6VVldaJJrowFyh4uvp8dNq9Mie3T+l+uEOTfw==,
+      }
+    peerDependencies:
+      '@nestjs/common': ^11.0.0 || ^12.0.0
+      rxjs: ^7.1.0
+
   '@nestjs/core@12.1.2':
     resolution:
       {
@@ -2396,6 +2414,12 @@ packages:
         integrity: sha512-ymXWVrDiCxTBE3+RIrrP533E70eA+9qu7zdWoHuOmGujkYtzf4HQF96b8nwHLqhuf4ykX61IGRIB38CC6/sImQ==,
       }
 
+  '@types/multer@2.3.0':
+    resolution:
+      {
+        integrity: sha512-i7STIm9V4K2MPH4ZYMtrZAwNxs3kglk2LgleaTuB9pUXgADBcQYQuYMd7+6xgTIxfoggIkFA/DkkvycdZpIARA==,
+      }
+
   '@types/node@20.19.43':
     resolution:
       {
@@ -3348,6 +3372,13 @@ packages:
       }
     engines: { node: '>=0.8' }
 
+  cloudinary@2.11.0:
+    resolution:
+      {
+        integrity: sha512-o2pAkDDqrzPFE/mn9GCfFjBIGQmPs++Ts6rtkFl4vY528DNHiMovKWjH16HBjeGa9iwI7eAad24aWN2emT0aww==,
+      }
+    engines: { node: '>=9' }
+
   color-convert@2.0.1:
     resolution:
       {
@@ -3706,12 +3737,27 @@ packages:
       }
     engines: { node: '>=0.10.0' }
 
+  dotenv-expand@13.0.0:
+    resolution:
+      {
+        integrity: sha512-aBfBS8eYIeXmpHI9ThIlA7/WLq+SLt18iXUZhb52rW89QLKQFoIpPG1bPeewoPZsTyjSSO3T7234FBVUM1V2rA==,
+      }
+    engines: { node: '>=12' }
+
   dotenv@17.4.2:
     resolution:
       {
         integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==,
       }
     engines: { node: '>=12' }
+
+  dotenv@18.0.3:
+    resolution:
+      {
+        integrity: sha512-/8CJTyL817qPnfbQrJgOEcrU3fDrJkRIoXBE566wHuvIXKOCHUZhPqGPbCPi9SogjdGnreF0TlvnTgK6J/8zpA==,
+      }
+    engines: { node: '>=12' }
+    hasBin: true
 
   dotenv@18.0.6:
     resolution:
@@ -7784,6 +7830,15 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@nestjs/config@12.0.1(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(rxjs@7.8.2)':
+    dependencies:
+      '@nestjs/common': 12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)
+      '@standard-schema/spec': 1.1.0
+      dotenv: 18.0.3
+      dotenv-expand: 13.0.0
+      es-toolkit: 1.52.0
+      rxjs: 7.8.2
+
   '@nestjs/core@12.1.2(@nestjs/common@12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2))(@nestjs/platform-express@12.1.2)(reflect-metadata@0.2.2)(rxjs@7.8.2)':
     dependencies:
       '@nestjs/common': 12.1.2(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -8368,6 +8423,10 @@ snapshots:
   '@types/lodash@4.17.25': {}
 
   '@types/methods@1.1.4': {}
+
+  '@types/multer@2.3.0':
+    dependencies:
+      '@types/express': 5.0.6
 
   '@types/node@20.19.43':
     dependencies:
@@ -9006,6 +9065,10 @@ snapshots:
 
   clone@1.0.4: {}
 
+  cloudinary@2.11.0:
+    dependencies:
+      lodash: 4.18.1
+
   color-convert@2.0.1:
     dependencies:
       color-name: 1.1.4
@@ -9179,7 +9242,13 @@ snapshots:
     dependencies:
       esutils: 2.0.3
 
+  dotenv-expand@13.0.0:
+    dependencies:
+      dotenv: 17.4.2
+
   dotenv@17.4.2: {}
+
+  dotenv@18.0.3: {}
 
   dotenv@18.0.6: {}
 

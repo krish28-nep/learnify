@@ -15,6 +15,3 @@ export const updateContentSchema = z
     message: 'At least one content field must be provided',
   });
 export type UpdateContentDto = z.infer<typeof updateContentSchema>;
-
-export const contentIdSchema = z.string().cuid();
-export const contentUnitIdSchema = z.string().cuid();

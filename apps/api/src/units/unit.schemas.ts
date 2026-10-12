@@ -26,6 +26,3 @@ export const updateUnitSchema = z
     message: 'At least one unit field must be provided',
   });
 export type UpdateUnitDto = z.infer<typeof updateUnitSchema>;
-
-export const unitIdSchema = z.string().cuid();
-export const unitSubjectIdSchema = z.string().cuid();
