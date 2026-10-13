@@ -48,6 +48,7 @@ export class AuthController {
     });
     return {
       message: 'Sign-in successful',
+      user,
       mfaRequired: session.mfa === 'pending',
     };
   }
@@ -62,6 +63,6 @@ export class AuthController {
 
   @Get('me')
   me(@CurrentUser() user: AuthUser) {
-    return user;
+    return { message: 'User retrieved successfully', user };
   }
 }

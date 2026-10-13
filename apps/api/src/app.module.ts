@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
 import { AuthenticationModule } from '@nestjs/authentication';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { SubjectsModule } from './subjects/subjects.module.js';
+import { UnitsModule } from './units/units.module.js';
+import { ContentsModule } from './contents/contents.module.js';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     AuthenticationModule.forRoot({
       session: {
         absoluteTtl: '14d',
@@ -16,6 +21,9 @@ import { PrismaModule } from './prisma/prisma.module.js';
     }),
     PrismaModule,
     AuthModule,
+    SubjectsModule,
+    UnitsModule,
+    ContentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

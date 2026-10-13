@@ -15,7 +15,7 @@ enum UserRole {
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(uuid())
 
   name      String
   email     String   @unique
@@ -28,7 +28,7 @@ model User {
 }
 
 model Subject {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   title        String
   slug         String  @unique
@@ -44,7 +44,7 @@ model Subject {
 }
 
 model Unit {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   subjectId String
   subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
@@ -64,7 +64,7 @@ model Unit {
 }
 
 model Content {
-  id String @id @default(cuid())
+  id String @id @default(uuid())
 
   unitId String
   unit   Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
@@ -73,8 +73,9 @@ model Content {
   description String?
 
   // PDF information
-  fileUrl  String
-  fileName String?
+  fileUrl      String
+  filePublicId String?
+  fileName     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
